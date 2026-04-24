@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Speaking Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1A1714;
+  --ink2: #4A4540;
+  --gold: #C8913A;
+  --gold-light: #F0D89A;
+  --red: #C44B3A;
+  --green: #3A7A4B;
+  --border: rgba(26,23,20,0.12);
+  --bg: #FDFAF6;
+  --surface: #FFFFFF;
+  --surface2: #F5F2EC;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #F0EDE8;
+    --ink2: #A09890;
+    --border: rgba(240,237,232,0.12);
+    --bg: #1A1714;
+    --surface: #252220;
+    --surface2: #2E2B28;
+  }
+}
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.app { max-width: 680px; margin: 0 auto; }
+
+.header { margin-bottom: 2rem; }
+.header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.header p { font-size: 15px; color: var(--ink2); margin-top: 6px; font-family: 'Lora', serif; font-style: italic; }
+
+.lang-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.lang-tab {
+  padding: 8px 18px; border-radius: 100px;
+  border: 1px solid var(--border); font-size: 14px; font-weight: 500;
+  cursor: pointer; font-family: 'Syne', sans-serif;
+  background: transparent; color: var(--ink2); transition: all 0.15s;
+}
+.lang-tab:hover { border-color: var(--gold); color: var(--gold); }
+.lang-tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.level-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+.level-label { font-size: 12px; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; margin-right: 4px; }
+.level-btn {
+  padding: 5px 13px; border-radius: 6px;
+  border: 1px solid var(--border); font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: 'Syne', sans-serif;
+  background: transparent; color: var(--ink2); transition: all 0.15s;
+}
+.level-btn:hover { border-color: var(--gold); color: var(--gold); }
+.level-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
+
+.topic-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem;
+  margin-bottom: 1.5rem; position: relative; min-height: 160px;
+}
+.topic-card .lang-badge {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--gold); margin-bottom: 12px; display: block;
+}
+.topic-card .topic-text {
+  font-family: 'Lora', serif; font-size: 22px; line-height: 1.45; color: var(--ink); min-height: 60px;
+}
+.topic-card .level-badge {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  font-size: 11px; padding: 3px 10px; border-radius: 100px;
+  background: var(--gold-light); color: #7A5010; font-weight: 600;
+}
+.topic-placeholder { color: var(--ink2); font-size: 15px; font-style: italic; font-family: 'Lora', serif; }
+
+.hint-box {
+  background: var(--surface2); border-radius: 10px;
+  padding: 1rem 1.25rem; margin-top: 1rem;
+  font-size: 14px; color: var(--ink2); line-height: 1.7; display: none;
+}
+.hint-box.visible { display: block; }
+.hint-box strong { color: var(--ink); font-weight: 600; }
+
+.duration-row { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; }
+.duration-label { font-size: 12px; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+.dur-btn {
+  padding: 5px 13px; border-radius: 6px;
+  border: 1px solid var(--border); font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: 'Syne', sans-serif;
+  background: transparent; color: var(--ink2); transition: all 0.15s;
+}
+.dur-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.timer-area { display: flex; align-items: center; gap: 16px; margin-bottom: 1.5rem; }
+.timer-display { font-size: 38px; font-weight: 800; letter-spacing: -1px; min-width: 86px; }
+.timer-display.running { color: var(--red); }
+.timer-display.done { color: var(--green); }
+.timer-progress { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.timer-bar { height: 100%; background: var(--red); border-radius: 2px; transition: width 0.5s linear; }
+.timer-bar.done { background: var(--green); }
+
+.controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  padding: 11px 20px; border-radius: 8px; border: 1px solid var(--border);
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  font-family: 'Syne', sans-serif; transition: all 0.15s;
+  background: transparent; color: var(--ink);
+}
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover { opacity: 0.85; }
+.btn.gold { background: var(--gold); color: white; border-color: var(--gold); }
+.btn.gold:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+
+.loading-pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.vocab-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; display: none;
+}
+.vocab-card.visible { display: block; }
+.vocab-card h3 {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--ink2); margin-bottom: 1rem;
+}
+.vocab-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; line-height: 1.5;
+}
+.vocab-item:last-child { border-bottom: none; }
+.vocab-word { font-weight: 600; color: var(--gold); min-width: 130px; font-family: 'Lora', serif; font-style: italic; }
+.vocab-def { color: var(--ink2); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Daily Speaking Trainer</h1>
+    <p>Un sujet différent chaque jour, une langue, un chrono.</p>
+  </div>
+
+  <div class="lang-tabs">
+    <button class="lang-tab active" onclick="setLang('fr')" id="tab-fr">🇫🇷 Français</button>
+    <button class="lang-tab" onclick="setLang('en')" id="tab-en">🇬🇧 English</button>
+    <button class="lang-tab" onclick="setLang('es')" id="tab-es">🇪🇸 Español</button>
+  </div>
+
+  <div class="level-row">
+    <span class="level-label">Niveau :</span>
+    <div id="level-btns"></div>
+  </div>
+
+  <div class="topic-card">
+    <span class="lang-badge" id="lang-badge">Français · A1</span>
+    <span class="level-badge" id="level-badge-display">A1</span>
+    <div class="topic-text" id="topic-text">
+      <span class="topic-placeholder">Choisis ta langue et ton niveau, puis génère un sujet.</span>
+    </div>
+    <div class="hint-box" id="hint-box"></div>
+  </div>
+
+  <div class="duration-row">
+    <span class="duration-label">Durée :</span>
+    <button class="dur-btn active" onclick="setDur(60)" id="dur-60">1 min</button>
+    <button class="dur-btn" onclick="setDur(120)" id="dur-120">2 min</button>
+    <button class="dur-btn" onclick="setDur(180)" id="dur-180">3 min</button>
+    <button class="dur-btn" onclick="setDur(300)" id="dur-300">5 min</button>
+  </div>
+
+  <div class="timer-area">
+    <div class="timer-display" id="timer-display">1:00</div>
+    <div class="timer-progress"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="btn-generate" onclick="generateTopic()">Générer un sujet ↗</button>
+    <button class="btn gold" id="btn-timer" onclick="toggleTimer()" disabled>Démarrer le timer</button>
+    <button class="btn" id="btn-hint" onclick="toggleHint()" disabled>Voir des pistes</button>
+    <button class="btn" id="btn-vocab" onclick="getVocab()" disabled>Vocabulaire utile</button>
+  </div>
+
+  <div class="vocab-card" id="vocab-card">
+    <h3>Vocabulaire utile</h3>
+    <div id="vocab-list"></div>
+  </div>
+</div>
+
+<script>
+const LEVELS = { fr: ['A1','A2','B1','B2','C1'], en: ['A2','B1','B2','C1','C2'], es: ['A1','A2','B1','B2'] };
+const LANG_NAMES = { fr: 'Français', en: 'English', es: 'Español' };
+
+let currentLang = 'fr';
+let currentLevel = 'A1';
+let currentTopic = '';
+let duration = 60;
+let timeLeft = 60;
+let timerInterval = null;
+let timerRunning = false;
+let hintVisible = false;
+
+async function callAPI(prompt) {
+  const res = await fetch('/api/groq', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'API error');
+  return data.text.replace(/```json|```/g, '').trim();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  ['fr','en','es'].forEach(l => document.getElementById('tab-'+l).classList.toggle('active', l === lang));
+  renderLevelBtns();
+  resetTopic();
+}
+
+function renderLevelBtns() {
+  const levels = LEVELS[currentLang];
+  currentLevel = levels[0];
+  const container = document.getElementById('level-btns');
+  container.innerHTML = '';
+  levels.forEach((lvl, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = lvl;
+    btn.onclick = () => setLevel(lvl);
+    btn.id = 'lvl-' + lvl;
+    container.appendChild(btn);
+  });
+}
+
+function setLevel(lvl) {
+  currentLevel = lvl;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('lvl-' + lvl);
+  if (btn) btn.classList.add('active');
+  resetTopic();
+}
+
+function setDur(d) {
+  duration = d;
+  timeLeft = d;
+  [60,120,180,300].forEach(v => document.getElementById('dur-'+v).classList.toggle('active', v === d));
+  updateTimerDisplay();
+  resetTimer();
+}
+
+function resetTopic() {
+  currentTopic = '';
+  document.getElementById('topic-text').innerHTML = '<span class="topic-placeholder">Choisis ta langue et ton niveau, puis génère un sujet.</span>';
+  document.getElementById('hint-box').className = 'hint-box';
+  document.getElementById('hint-box').innerHTML = '';
+  document.getElementById('vocab-card').className = 'vocab-card';
+  document.getElementById('btn-hint').disabled = true;
+  document.getElementById('btn-vocab').disabled = true;
+  document.getElementById('btn-timer').disabled = true;
+  resetTimer();
+  hintVisible = false;
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timeLeft = duration;
+  updateTimerDisplay();
+  document.getElementById('timer-bar').style.width = '100%';
+  document.getElementById('timer-bar').className = 'timer-bar';
+  document.getElementById('timer-display').className = 'timer-display';
+  document.getElementById('btn-timer').textContent = 'Démarrer le timer';
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  document.getElementById('timer-display').textContent = m + ':' + String(s).padStart(2,'0');
+}
+
+function toggleTimer() {
+  if (!currentTopic) return;
+  if (timeLeft === 0) { resetTimer(); return; }
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('btn-timer').textContent = 'Reprendre';
+    document.getElementById('timer-display').className = 'timer-display';
+  } else {
+    timerRunning = true;
+    document.getElementById('btn-timer').textContent = 'Pause';
+    document.getElementById('timer-display').className = 'timer-display running';
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      document.getElementById('timer-bar').style.width = ((timeLeft / duration) * 100) + '%';
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timer-display').className = 'timer-display done';
+        document.getElementById('timer-bar').className = 'timer-bar done';
+        document.getElementById('btn-timer').textContent = 'Recommencer';
+      }
+    }, 1000);
+  }
+}
+
+async function generateTopic() {
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  resetTimer();
+  hintVisible = false;
+  document.getElementById('hint-box').className = 'hint-box';
+  document.getElementById('vocab-card').className = 'vocab-card';
+
+  document.getElementById('lang-badge').textContent = LANG_NAMES[currentLang] + ' · ' + currentLevel;
+  document.getElementById('level-badge-display').textContent = currentLevel;
+
+  const topicEl = document.getElementById('topic-text');
+  topicEl.innerHTML = '<span class="topic-placeholder loading-pulse">Génération du sujet...</span>';
+
+  const langLabel = { fr: 'French', en: 'English', es: 'Spanish' }[currentLang];
+  const cefrDesc = { A1: 'absolute beginner', A2: 'elementary', B1: 'intermediate', B2: 'upper-intermediate', C1: 'advanced', C2: 'mastery/proficiency' };
+
+  const userInterests = "cinema & TV series, history & politics, fashion & lifestyle, nature & environment, business & entrepreneurship, literature";
+  const britishNote = currentLang === 'en' ? '\n- Use British English vocabulary, expressions and cultural references (BBC style, British humour, UK society).' : '';
+  const userGoal = "preparing for a language exam (DELF/IELTS)";
+
+  const prompt = `Generate a single oral speaking practice topic for a ${cefrDesc[currentLevel]} ${langLabel} learner (CEFR ${currentLevel}).
+
+The learner's interests are: ${userInterests}.
+Their goal is: ${userGoal}.
+
+Requirements:
+- The topic MUST be written in ${langLabel}
+- It should be a short sentence or question (1-2 sentences max)
+- Appropriate vocabulary and complexity for ${currentLevel} level
+- The topic should relate to one of the learner's interests when possible
+- Vary the format: opinion questions, descriptions, hypotheticals, comparisons, storytelling, debates, personal experiences
+- Make it engaging and exam-relevant (similar to DELF/IELTS oral tasks)
+- NEVER repeat a topic that was recently used — always pick a fresh angle${britishNote}
+
+Respond with ONLY a JSON object, no markdown, no preamble:
+{"topic": "...", "hint1": "...", "hint2": "...", "hint3": "..."}
+
+The hints should be 3 distinct angles or ideas in ${langLabel} to structure a response (adapt complexity to ${currentLevel}).`;
+
+  try {
+    const raw = await callAPI(prompt);
+    const parsed = JSON.parse(raw);
+    currentTopic = parsed.topic;
+    topicEl.textContent = parsed.topic;
+    document.getElementById('hint-box').innerHTML = `<strong>Pistes pour parler :</strong><br>${parsed.hint1}<br>${parsed.hint2}<br>${parsed.hint3}`;
+    document.getElementById('btn-hint').disabled = false;
+    document.getElementById('btn-vocab').disabled = false;
+    document.getElementById('btn-timer').disabled = false;
+  } catch(e) {
+    topicEl.innerHTML = '<span style="color:var(--red)">Erreur — réessaie dans un instant.</span>';
+  }
+  btn.disabled = false;
+}
+
+function toggleHint() {
+  hintVisible = !hintVisible;
+  document.getElementById('hint-box').className = 'hint-box' + (hintVisible ? ' visible' : '');
+  document.getElementById('btn-hint').textContent = hintVisible ? 'Cacher les pistes' : 'Voir des pistes';
+}
+
+async function getVocab() {
+  const btn = document.getElementById('btn-vocab');
+  btn.disabled = true;
+  btn.textContent = 'Chargement...';
+  const vocabCard = document.getElementById('vocab-card');
+  const vocabList = document.getElementById('vocab-list');
+  vocabCard.className = 'vocab-card visible';
+  vocabList.innerHTML = '<span class="loading-pulse" style="font-size:14px;color:var(--ink2)">Génération du vocabulaire...</span>';
+
+  const langLabel = { fr: 'French', en: 'English', es: 'Spanish' }[currentLang];
+
+  const prompt = `For the speaking topic: "${currentTopic}"
+Language: ${langLabel}, CEFR level: ${currentLevel}
+The learner is preparing for a language exam (DELF/IELTS).
+
+Give 5 useful words or expressions for discussing this topic, appropriate for ${currentLevel} level.
+Prioritize vocabulary that would impress an examiner — varied, precise, and natural.
+
+Respond ONLY with a JSON array, no markdown, no preamble:
+[{"word":"...","def":"..."},...]
+
+"word" = the term in ${langLabel}
+"def" = brief definition/translation in French (1 line)`;
+
+  try {
+    const raw = await callAPI(prompt);
+    const vocab = JSON.parse(raw);
+    vocabList.innerHTML = vocab.map(v => `
+      <div class="vocab-item">
+        <span class="vocab-word">${v.word}</span>
+        <span class="vocab-def">${v.def}</span>
+      </div>`).join('');
+  } catch(e) {
+    vocabList.innerHTML = '<span style="color:var(--red);font-size:14px">Erreur — réessaie.</span>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Vocabulaire utile';
+}
+
+renderLevelBtns();
+updateTimerDisplay();
+</script>
+</body>
+</html>
